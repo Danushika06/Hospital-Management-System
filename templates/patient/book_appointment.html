@@ -1,0 +1,132 @@
+{% extends "layouts/base.html" %}
+
+{% block title %}Book Appointment{% endblock %}
+{% block page_title %}Book Appointment{% endblock %}
+
+{% block sidebar_menu %}
+<li><a href="{{ url_for('patient.dashboard') }}"><i class="bi bi-speedometer2"></i> Dashboard</a></li>
+<li><a href="{{ url_for('patient.book_appointment') }}" class="active"><i class="bi bi-calendar-plus"></i> Book Appointment</a></li>
+<li><a href="{{ url_for('patient.appointments') }}"><i class="bi bi-calendar-check"></i> My Appointments</a></li>
+<li><a href="{{ url_for('patient.prescriptions') }}"><i class="bi bi-file-medical"></i> My Prescriptions</a></li>
+<li><a href="{{ url_for('patient.analytics') }}"><i class="bi bi-graph-up"></i> Analytics</a></li>
+<li><a href="{{ url_for('patient.chatbot') }}"><i class="bi bi-robot"></i> AI Assistant</a></li>
+{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <h2>Book an Appointment</h2>
+        <p class="text-muted">Schedule a visit with our doctors</p>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-header bg-success text-white">
+                <h5 class="mb-0"><i class="bi bi-calendar-plus"></i> Appointment Details</h5>
+            </div>
+            <div class="card-body">
+                <form method="POST" action="{{ url_for('patient.book_appointment') }}">
+                    <div class="mb-3">
+                        <label for="doctor_id" class="form-label">Select Doctor <span class="text-danger">*</span></label>
+                        <select class="form-select" id="doctor_id" name="doctor_id" required>
+                            <option value="">Choose a doctor...</option>
+                            {% for doctor in doctors %}
+                            <option value="{{ doctor.id }}">Dr. {{ doctor.username }} ({{ doctor.email }})</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="date" class="form-label">Appointment Date <span class="text-danger">*</span></label>
+                                <input type="date" class="form-control" id="date" name="date" required>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="time" class="form-label">Appointment Time <span class="text-danger">*</span></label>
+                                <input type="time" class="form-control" id="time" name="time" required>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="notes" class="form-label">Notes (Optional)</label>
+                        <textarea class="form-control" id="notes" name="notes" rows="4" 
+                                  placeholder="Describe your symptoms or reason for visit..."></textarea>
+                    </div>
+                    
+                    <div class="alert alert-info">
+                        <i class="bi bi-info-circle"></i> 
+                        <strong>Note:</strong> Your appointment request will be sent for approval. 
+                        You will be notified once approved by the receptionist.
+                    </div>
+                    
+                    <div class="text-end">
+                        <a href="{{ url_for('patient.dashboard') }}" class="btn btn-secondary">
+                            <i class="bi bi-x-circle"></i> Cancel
+                        </a>
+                        <button type="submit" class="btn btn-success">
+                            <i class="bi bi-calendar-plus"></i> Book Appointment
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-4">
+        <div class="card">
+            <div class="card-header">
+                <h6 class="mb-0"><i class="bi bi-info-circle"></i> Appointment Guidelines</h6>
+            </div>
+            <div class="card-body">
+                <ul class="list-unstyled">
+                    <li class="mb-2"><i class="bi bi-check-circle text-success"></i> Choose your preferred doctor</li>
+                    <li class="mb-2"><i class="bi bi-check-circle text-success"></i> Select a suitable date and time</li>
+                    <li class="mb-2"><i class="bi bi-check-circle text-success"></i> Describe your symptoms clearly</li>
+                    <li class="mb-2"><i class="bi bi-check-circle text-success"></i> Wait for approval notification</li>
+                    <li class="mb-2"><i class="bi bi-check-circle text-success"></i> Arrive 10 minutes early</li>
+                </ul>
+                
+                <hr>
+                
+                <h6><i class="bi bi-clock"></i> Working Hours</h6>
+                <p class="text-muted small">
+                    Monday - Saturday: 8:00 AM - 6:00 PM<br>
+                    Sunday & Holidays: Emergency only
+                </p>
+            </div>
+        </div>
+        
+        <div class="card mt-3">
+            <div class="card-body">
+                <h6><i class="bi bi-telephone"></i> Need Help?</h6>
+                <p class="text-muted small">
+                    Call us: +1 (555) 123-4567<br>
+                    Email: info@hospital.com
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+$(document).ready(function() {
+    // Set minimum date to today
+    var today = new Date().toISOString().split('T')[0];
+    $('#date').attr('min', today);
+    
+    // Set time slots (business hours: 9 AM - 5 PM)
+    $('#time').attr('min', '09:00');
+    $('#time').attr('max', '17:00');
+    $('#time').attr('step', '1800'); // 30 minute intervals
+});
+</script>
+{% endblock %}

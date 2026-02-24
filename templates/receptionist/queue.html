@@ -1,0 +1,111 @@
+{% extends "layouts/base.html" %}
+
+{% block title %}Daily Queue{% endblock %}
+{% block page_title %}Daily Queue{% endblock %}
+
+{% block sidebar_menu %}
+<li><a href="{{ url_for('receptionist.dashboard') }}"><i class="bi bi-speedometer2"></i> Dashboard</a></li>
+<li><a href="{{ url_for('receptionist.appointments') }}"><i class="bi bi-calendar-check"></i> All Appointments</a></li>
+<li><a href="{{ url_for('receptionist.queue') }}" class="active"><i class="bi bi-list-ol"></i> Daily Queue</a></li>
+{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <h2>Today's Appointment Queue</h2>
+        <p class="text-muted">{{ today.strftime('%A, %B %d, %Y') }}</p>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">Approved Appointments for Today</h5>
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Queue #</th>
+                                <th>Time</th>
+                                <th>Patient</th>
+                                <th>Doctor</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for appointment in queue %}
+                            <tr class="{{ 'table-success' if appointment.status == 'Completed' else '' }}">
+                                <td><strong>{{ loop.index }}</strong></td>
+                                <td>{{ appointment.time.strftime('%H:%M') }}</td>
+                                <td>{{ appointment.patient.username }}</td>
+                                <td>Dr. {{ appointment.doctor.username }}</td>
+                                <td>
+                                    <span class="badge bg-{{ 'success' if appointment.status == 'Completed' else 'primary' }}">
+                                        {{ appointment.status }}
+                                    </span>
+                                </td>
+                                <td>
+                                    {% if appointment.status == 'Approved' %}
+                                    <form method="POST" action="{{ url_for('receptionist.notify_doctor', appointment_id=appointment.id) }}" style="display:inline;">
+                                        <button type="submit" class="btn btn-sm btn-orange">
+                                            <i class="bi bi-bell"></i> Notify Doctor
+                                        </button>
+                                    </form>
+                                    {% else %}
+                                    <span class="text-success"><i class="bi bi-check-circle"></i> Completed</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% else %}
+                            <tr>
+                                <td colspan="6" class="text-center text-muted py-4">
+                                    No appointments scheduled for today
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-md-4">
+        <div class="stat-card">
+            <div class="stat-icon" style="background: rgba(234, 88, 12, 0.1);">
+                <i class="bi bi-people" style="color: #ea580c;"></i>
+            </div>
+            <div class="stat-details">
+                <h3>{{ queue|length }}</h3>
+                <p>Total in Queue</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="stat-card">
+            <div class="stat-icon" style="background: rgba(234, 88, 12, 0.1);">
+                <i class="bi bi-clock" style="color: #ea580c;"></i>
+            </div>
+            <div class="stat-details">
+                <h3>{{ queue|selectattr('status', 'equalto', 'Approved')|list|length }}</h3>
+                <p>Waiting</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="stat-card">
+            <div class="stat-icon" style="background: rgba(234, 88, 12, 0.1);">
+                <i class="bi bi-check-circle" style="color: #ea580c;"></i>
+            </div>
+            <div class="stat-details">
+                <h3>{{ queue|selectattr('status', 'equalto', 'Completed')|list|length }}</h3>
+                <p>Completed</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

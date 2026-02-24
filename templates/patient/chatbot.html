@@ -1,0 +1,304 @@
+{% extends "layouts/base.html" %}
+
+{% block title %}AI Medical Assistant{% endblock %}
+{% block page_title %}AI Medical Assistant{% endblock %}
+
+{% block sidebar_menu %}
+<li><a href="{{ url_for('patient.dashboard') }}"><i class="bi bi-speedometer2"></i> Dashboard</a></li>
+<li><a href="{{ url_for('patient.book_appointment') }}"><i class="bi bi-calendar-plus"></i> Book Appointment</a></li>
+<li><a href="{{ url_for('patient.appointments') }}"><i class="bi bi-calendar-check"></i> My Appointments</a></li>
+<li><a href="{{ url_for('patient.prescriptions') }}"><i class="bi bi-file-medical"></i> My Prescriptions</a></li>
+<li><a href="{{ url_for('patient.analytics') }}"><i class="bi bi-graph-up"></i> Analytics</a></li>
+<li><a href="{{ url_for('patient.chatbot') }}" class="active"><i class="bi bi-robot"></i> AI Assistant</a></li>
+{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <h2><i class="bi bi-robot"></i> AI Medical Assistant</h2>
+        <p class="text-muted">Get instant medical information and assistance</p>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-3">
+        <div class="card">
+            <div class="card-header bg-success text-white">
+                <h6 class="mb-0"><i class="bi bi-list"></i> Features</h6>
+            </div>
+            <div class="list-group list-group-flush">
+                <a href="#" class="list-group-item list-group-item-action chatbot-feature" data-feature="symptom">
+                    <i class="bi bi-thermometer-half"></i> Symptom Checker
+                </a>
+                <a href="#" class="list-group-item list-group-item-action chatbot-feature" data-feature="medicine">
+                    <i class="bi bi-capsule"></i> Medicine Info
+                </a>
+                <a href="#" class="list-group-item list-group-item-action chatbot-feature" data-feature="appointment">
+                    <i class="bi bi-calendar"></i> Appointment Help
+                </a>
+                <a href="#" class="list-group-item list-group-item-action chatbot-feature" data-feature="faq">
+                    <i class="bi bi-question-circle"></i> FAQs
+                </a>
+                <a href="#" class="list-group-item list-group-item-action chatbot-feature text-danger" data-feature="emergency">
+                    <i class="bi bi-exclamation-triangle"></i> Emergency
+                </a>
+            </div>
+        </div>
+        
+        <div class="card mt-3">
+            <div class="card-body">
+                <h6><i class="bi bi-info-circle"></i> Disclaimer</h6>
+                <small class="text-muted">
+                    This AI assistant provides general information only. 
+                    Always consult healthcare professionals for medical advice.
+                </small>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-9">
+        <div class="card chat-container">
+            <div class="card-header bg-success text-white">
+                <h5 class="mb-0">
+                    <i class="bi bi-chat-dots"></i> Chat
+                    <span class="badge bg-light text-success float-end" id="chatMode">General</span>
+                </h5>
+            </div>
+            <div class="card-body p-0">
+                <div id="chatMessages" class="chat-messages">
+                    <div class="message bot-message">
+                        <div class="message-content">
+                            <strong>AI Assistant:</strong> Hello! I'm your medical assistant. How can I help you today?
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="card-footer">
+                <form id="chatForm" class="d-flex gap-2">
+                    <input type="text" id="userMessage" class="form-control" placeholder="Type your message..." autocomplete="off">
+                    <button type="submit" class="btn btn-success">
+                        <i class="bi bi-send"></i>
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.chat-container {
+    height: calc(100vh - 300px);
+   display: flex;
+    flex-direction: column;
+}
+
+.chat-messages {
+    flex: 1;
+    overflow-y: auto;
+    padding: 20px;
+    background-color: #f8f9fa;
+    max-height: 500px;
+}
+
+.message {
+    margin-bottom: 15px;
+    padding: 10px 15px;
+    border-radius: 10px;
+    max-width: 80%;
+}
+
+.bot-message {
+    background-color: #e3f2fd;
+    margin-right: auto;
+}
+
+.user-message {
+    background-color: #c8e6c9;
+    margin-left: auto;
+    text-align: right;
+}
+
+.message-content {
+    word-wrap: break-word;
+}
+
+.chatbot-feature {
+    cursor: pointer;
+}
+
+.chatbot-feature:hover {
+    background-color: #f0f0f0;
+}
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+let currentFeature = 'general';
+
+$(document).ready(function() {
+    // Feature selection
+    $('.chatbot-feature').click(function(e) {
+        e.preventDefault();
+        currentFeature = $(this).data('feature');
+        
+        $('.chatbot-feature').removeClass('active');
+        $(this).addClass('active');
+        
+        $('#chatMode').text($(this).text().trim());
+        
+        let message = '';
+        switch(currentFeature) {
+            case 'symptom':
+                message = 'Please describe your symptoms, and I\'ll provide possible conditions and advice.';
+                break;
+            case 'medicine':
+                message = 'Please enter the name of the medicine you want information about.';
+                break;
+            case 'appointment':
+                message = 'How can I help you with appointments?';
+                break;
+            case 'faq':
+                message = 'I can answer frequently asked questions about our hospital services.';
+                break;
+            case 'emergency':
+                message = '🚨 For life-threatening emergencies, call 911 immediately!';
+                break;
+        }
+        
+        addBotMessage(message);
+    });
+    
+    // Chat form submission
+    $('#chatForm').submit(function(e) {
+        e.preventDefault();
+        
+        const userMessage = $('#userMessage').val().trim();
+        if (!userMessage) return;
+        
+        // Add user message to chat
+        addUserMessage(userMessage);
+        $('#userMessage').val('');
+        
+        // Disable button and show processing
+        const $submitBtn = $('#chatForm button[type="submit"]');
+        const originalBtnHtml = $submitBtn.html();
+        $submitBtn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm"></span> Processing...');
+        
+        // Send to server
+        $.ajax({
+            url: '/api/chatbot',
+            method: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify({
+                message: userMessage,
+                type: currentFeature,
+                role: '{{ user.role }}'
+            }),
+            success: function(response) {
+                addBotResponse(response);
+            },
+            error: function() {
+                addBotMessage('Sorry, I encountered an error. Please try again.');
+            },
+            complete: function() {
+                // Re-enable button after request completes
+                $submitBtn.prop('disabled', false).html(originalBtnHtml);
+            }
+        });
+    });
+});
+
+function addUserMessage(message) {
+    const messageHtml = `
+        <div class="message user-message">
+            <div class="message-content">
+                <strong>You:</strong> ${escapeHtml(message)}
+            </div>
+        </div>
+    `;
+    $('#chatMessages').append(messageHtml);
+    scrollToBottom();
+}
+
+function addBotMessage(message) {
+    const messageHtml = `
+        <div class="message bot-message">
+            <div class="message-content">
+                <strong>AI Assistant:</strong> ${escapeHtml(message)}
+            </div>
+        </div>
+    `;
+    $('#chatMessages').append(messageHtml);
+    scrollToBottom();
+}
+
+function addBotResponse(response) {
+    let content = '';
+    
+    if (response.emergency) {
+        content = `<div class="alert alert-danger">${response.message}</div>`;
+    } else if (response.found !== undefined && !response.found) {
+        content = response.message;
+    } else if (response.results) {
+        content = '<div class="card"><div class="card-body">';
+        response.results.forEach(result => {
+            content += `<h6>${result.symptom}</h6>`;
+            content += `<p><strong>Possible Conditions:</strong> ${result.possible_conditions.join(', ')}</p>`;
+            content += `<p><strong>Advice:</strong> ${result.advice}</p><hr>`;
+        });
+        content += `<small class="text-muted">${response.disclaimer}</small></div></div>`;
+    } else if (response.medicine) {
+        content = `<div class="card"><div class="card-body">`;
+        content += `<h6>${response.medicine}</h6>`;
+        content += `<p><strong>Uses:</strong> ${response.uses}</p>`;
+        content += `<p><strong>Dosage:</strong> ${response.dosage}</p>`;
+        content += `<p><strong>Side Effects:</strong> ${response.side_effects}</p>`;
+        content += `<small class="text-warning">${response.warning}</small>`;
+        content += `</div></div>`;
+    } else if (response.faqs) {
+        content = '<div class="accordion" id="faqAccordion">';
+        response.faqs.forEach((faq, index) => {
+            content += `
+                <div class="accordion-item">
+                    <h2 class="accordion-header">
+                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq${index}">
+                            ${faq.question}
+                        </button>
+                    </h2>
+                    <div id="faq${index}" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                        <div class="accordion-body">${faq.answer}</div>
+                    </div>
+                </div>
+            `;
+        });
+        content += '</div>';
+    } else {
+        content = response.message || JSON.stringify(response);
+    }
+    
+    const messageHtml = `
+        <div class="message bot-message">
+            <div class="message-content">
+                <strong>AI Assistant:</strong><br>${content}
+            </div>
+        </div>
+    `;
+    $('#chatMessages').append(messageHtml);
+    scrollToBottom();
+}
+
+function scrollToBottom() {
+    const chatMessages = document.getElementById('chatMessages');
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+}
+
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+</script>
+{% endblock %}

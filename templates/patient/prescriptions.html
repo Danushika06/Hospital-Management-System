@@ -1,0 +1,61 @@
+{% extends "layouts/base.html" %}
+
+{% block title %}My Prescriptions{% endblock %}
+{% block page_title %}My Prescriptions{% endblock %}
+
+{% block sidebar_menu %}
+<li><a href="{{ url_for('patient.dashboard') }}"><i class="bi bi-speedometer2"></i> Dashboard</a></li>
+<li><a href="{{ url_for('patient.book_appointment') }}"><i class="bi bi-calendar-plus"></i> Book Appointment</a></li>
+<li><a href="{{ url_for('patient.appointments') }}"><i class="bi bi-calendar-check"></i> My Appointments</a></li>
+<li><a href="{{ url_for('patient.prescriptions') }}" class="active"><i class="bi bi-file-medical"></i> My Prescriptions</a></li>
+<li><a href="{{ url_for('patient.analytics') }}"><i class="bi bi-graph-up"></i> Analytics</a></li>
+<li><a href="{{ url_for('patient.chatbot') }}"><i class="bi bi-robot"></i> AI Assistant</a></li>
+{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <h2>My Prescriptions</h2>
+        <p class="text-muted">View and download your prescriptions</p>
+    </div>
+</div>
+
+<div class="row">
+    {% for prescription in prescriptions %}
+    <div class="col-md-6 mb-3">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">Prescription #{{ prescription.id }}</h5>
+                <p class="card-text">
+                    <strong>Doctor:</strong> Dr. {{ prescription.doctor.username }}<br>
+                    <strong>Date:</strong> {{ prescription.created_at.strftime('%Y-%m-%d %H:%M') }}<br>
+                    <strong>Diagnosis:</strong> {{ prescription.diagnosis }}<br>
+                    <strong>Status:</strong> 
+                    <span class="badge bg-{{ 'success' if prescription.issued_status == 'Dispensed' else 'warning' }}">
+                        {{ prescription.issued_status }}
+                    </span>
+                </p>
+                <hr>
+                <h6>Medicines:</h6>
+                <ul class="list-unstyled">
+                    {% set medicines = prescription.medicine_details.split(',') if prescription.medicine_details else [] %}
+                    {% for medicine in medicines %}
+                    <li><i class="bi bi-capsule"></i> {{ medicine.strip() }}</li>
+                    {% endfor %}
+                </ul>
+                <a href="{{ url_for('patient.download_prescription', prescription_id=prescription.id) }}" 
+                   class="btn btn-success btn-sm">
+                    <i class="bi bi-download"></i> Download PDF
+                </a>
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <div class="col-12">
+        <div class="alert alert-info text-center">
+            No prescriptions found
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}

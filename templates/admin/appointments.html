@@ -1,0 +1,67 @@
+{% extends "layouts/base.html" %}
+
+{% block title %}Appointments - Admin{% endblock %}
+{% block page_title %}All Appointments{% endblock %}
+
+{% block sidebar_menu %}
+<li><a href="{{ url_for('admin.dashboard') }}"><i class="bi bi-speedometer2"></i> Dashboard</a></li>
+<li><a href="{{ url_for('admin.users') }}"><i class="bi bi-people"></i> Users</a></li>
+<li><a href="{{ url_for('admin.appointments') }}" class="active"><i class="bi bi-calendar-check"></i> Appointments</a></li>
+<li><a href="{{ url_for('admin.prescriptions') }}"><i class="bi bi-file-medical"></i> Prescriptions</a></li>
+{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <h2>All Appointments</h2>
+        <p class="text-muted">View and manage all appointments</p>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Patient</th>
+                        <th>Doctor</th>
+                        <th>Date</th>
+                        <th>Time</th>
+                        <th>Status</th>
+                        <th>Created</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for appointment in appointments %}
+                    <tr>
+                        <td>#{{ appointment.id }}</td>
+                        <td><i class="bi bi-person"></i> {{ appointment.patient.username }}</td>
+                        <td><i class="bi bi-person-badge"></i> Dr. {{ appointment.doctor.username }}</td>
+                        <td>{{ appointment.date.strftime('%Y-%m-%d') }}</td>
+                        <td>{{ appointment.time.strftime('%H:%M') }}</td>
+                        <td>
+                            {% if appointment.status == 'Pending' %}
+                                <span class="badge bg-warning">Pending</span>
+                            {% elif appointment.status == 'Approved' %}
+                                <span class="badge bg-success">Approved</span>
+                            {% elif appointment.status == 'Rejected' %}
+                                <span class="badge bg-danger">Rejected</span>
+                            {% else %}
+                                <span class="badge bg-secondary">{{ appointment.status }}</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ appointment.created_at.strftime('%Y-%m-%d') }}</td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="7" class="text-center text-muted">No appointments found</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

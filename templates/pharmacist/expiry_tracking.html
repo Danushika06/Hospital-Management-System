@@ -1,0 +1,176 @@
+{% extends "layouts/base.html" %}
+
+{% block title %}Expiry Tracking{% endblock %}
+{% block page_title %}Expiry Tracking{% endblock %}
+
+{% block sidebar_menu %}
+<li><a href="{{ url_for('pharmacist.dashboard') }}"><i class="bi bi-speedometer2"></i> Dashboard</a></li>
+<li><a href="{{ url_for('pharmacist.prescriptions') }}"><i class="bi bi-file-medical"></i> Prescriptions</a></li>
+<li><a href="{{ url_for('pharmacist.inventory') }}"><i class="bi bi-box-seam"></i> Inventory</a></li>
+<li><a href="{{ url_for('pharmacist.dispensing_history') }}"><i class="bi bi-clock-history"></i> History</a></li>
+<li><a href="{{ url_for('pharmacist.low_stock_alerts') }}"><i class="bi bi-exclamation-triangle"></i> Low Stock</a></li>
+<li><a href="{{ url_for('pharmacist.expiry_tracking') }}" class="active"><i class="bi bi-calendar-x"></i> Expiry Tracking</a></li>
+{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <h2>Expiry Tracking</h2>
+        <p class="text-muted">Monitor medicine expiration dates</p>
+    </div>
+</div>
+
+<!-- Summary Cards -->
+<div class="row mb-4">
+    <div class="col-md-4">
+        <div class="card border-danger">
+            <div class="card-body text-center">
+                <h3 class="text-danger">{{ expired_count }}</h3>
+                <p class="text-muted mb-0">Expired Medicines</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card border-warning">
+            <div class="card-body text-center">
+                <h3 class="text-warning">{{ expiring_soon_count }}</h3>
+                <p class="text-muted mb-0">Expiring Soon (30 days)</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card border-success">
+            <div class="card-body text-center">
+                <h3 class="text-success">{{ good_count }}</h3>
+                <p class="text-muted mb-0">Good Stock</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Expired Medicines -->
+{% if expired_medicines %}
+<div class="card mb-4 border-danger">
+    <div class="card-header bg-danger text-white">
+        <h5 class="mb-0"><i class="bi bi-exclamation-octagon"></i> Expired Medicines</h5>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Name</th>
+                        <th>Quantity</th>
+                        <th>Expiry Date</th>
+                        <th>Days Overdue</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for medicine in expired_medicines %}
+                    <tr class="table-danger">
+                        <td>#{{ medicine.id }}</td>
+                        <td>{{ medicine.name }}</td>
+                        <td>{{ medicine.quantity }}</td>
+                        <td>{{ medicine.expiry_date.strftime('%Y-%m-%d') }}</td>
+                        <td><span class="badge bg-danger">{{ (today - medicine.expiry_date).days }} days</span></td>
+                        <td>
+                            <form method="POST" action="{{ url_for('pharmacist.delete_medicine', medicine_id=medicine.id) }}" 
+                                  onsubmit="return confirm('Remove this expired medicine?');">
+                                <button type="submit" class="btn btn-sm btn-danger">
+                                    <i class="bi bi-trash"></i> Remove
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Expiring Soon -->
+{% if expiring_soon_medicines %}
+<div class="card mb-4 border-warning">
+    <div class="card-header bg-warning">
+        <h5 class="mb-0"><i class="bi bi-clock-history"></i> Expiring Soon (Next 30 Days)</h5>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Name</th>
+                        <th>Quantity</th>
+                        <th>Expiry Date</th>
+                        <th>Days Left</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for medicine in expiring_soon_medicines %}
+                    <tr class="table-warning">
+                        <td>#{{ medicine.id }}</td>
+                        <td>{{ medicine.name }}</td>
+                        <td>{{ medicine.quantity }}</td>
+                        <td>{{ medicine.expiry_date.strftime('%Y-%m-%d') }}</td>
+                        <td><span class="badge bg-warning text-dark">{{ (medicine.expiry_date - today).days }} days</span></td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- All Medicines -->
+<div class="card">
+    <div class="card-header">
+        <h5 class="mb-0"><i class="bi bi-list-ul"></i> All Medicines by Expiry</h5>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Name</th>
+                        <th>Quantity</th>
+                        <th>Expiry Date</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for medicine in medicines %}
+                    <tr>
+                        <td>#{{ medicine.id }}</td>
+                        <td>{{ medicine.name }}</td>
+                        <td>{{ medicine.quantity }}</td>
+                        <td>{{ medicine.expiry_date.strftime('%Y-%m-%d') if medicine.expiry_date else 'N/A' }}</td>
+                        <td>
+                            {% if medicine.expiry_date %}
+                                {% if medicine.expiry_date < today %}
+                                <span class="badge bg-danger">Expired</span>
+                                {% elif (medicine.expiry_date - today).days < 30 %}
+                                <span class="badge bg-warning text-dark">Expiring Soon</span>
+                                {% else %}
+                                <span class="badge bg-success">Good</span>
+                                {% endif %}
+                            {% else %}
+                            <span class="badge bg-secondary">No Expiry</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr><td colspan="5" class="text-center text-muted">No medicines found</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

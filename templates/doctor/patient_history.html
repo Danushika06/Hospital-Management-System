@@ -1,0 +1,109 @@
+{% extends "layouts/base.html" %}
+
+{% block title %}Patient History{% endblock %}
+{% block page_title %}Patient History{% endblock %}
+
+{% block sidebar_menu %}
+<li><a href="{{ url_for('doctor.dashboard') }}"><i class="bi bi-speedometer2"></i> Dashboard</a></li>
+<li><a href="{{ url_for('doctor.appointments') }}"><i class="bi bi-calendar-check"></i> My Appointments</a></li>
+<li><a href="{{ url_for('doctor.prescriptions') }}"><i class="bi bi-file-medical"></i> Prescriptions</a></li>
+{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <h2>Patient Medical History</h2>
+        <p class="text-muted">{{ patient.username }} - Complete medical records</p>
+    </div>
+</div>
+
+<div class="row mb-4">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">Patient Information</h5>
+                <div class="row">
+                    <div class="col-md-6">
+                        <p><strong>Name:</strong> {{ patient.username }}</p>
+                        <p><strong>Role:</strong> {{ patient.role }}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <p><strong>Status:</strong> 
+                            <span class="badge bg-{{ 'success' if patient.is_active else 'danger' }}">
+                                {{ 'Active' if patient.is_active else 'Inactive' }}
+                            </span>
+                        </p>
+                        <p><strong>Total Appointments:</strong> {{ appointments|length }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-6 mb-4">
+        <div class="card">
+            <div class="card-header bg-teal text-white">
+                <h5 class="mb-0">Appointment History</h5>
+            </div>
+            <div class="card-body">
+                <div class="timeline">
+                    {% for appointment in appointments %}
+                    <div class="timeline-item mb-3">
+                        <div class="d-flex">
+                            <div class="flex-shrink-0">
+                                <i class="bi bi-calendar-check text-teal"></i>
+                            </div>
+                            <div class="flex-grow-1 ms-3">
+                                <h6>{{ appointment.date.strftime('%Y-%m-%d') }} at {{ appointment.time.strftime('%H:%M') }}</h6>
+                                <p class="text-muted mb-1">
+                                    Status: <span class="badge bg-{{ 'success' if appointment.status == 'Completed' else 'secondary' }}">
+                                        {{ appointment.status }}
+                                    </span>
+                                </p>
+                                {% if appointment.notes %}
+                                <small class="text-muted">{{ appointment.notes }}</small>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    {% else %}
+                    <p class="text-center text-muted">No appointment history</p>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6 mb-4">
+        <div class="card">
+            <div class="card-header bg-teal text-white">
+                <h5 class="mb-0">Prescription History</h5>
+            </div>
+            <div class="card-body">
+                {% for prescription in prescriptions %}
+                <div class="card mb-3">
+                    <div class="card-body">
+                        <h6 class="card-title">{{ prescription.issue_date.strftime('%Y-%m-%d') }}</h6>
+                        <p class="mb-1"><strong>Diagnosis:</strong> {{ prescription.diagnosis }}</p>
+                        <p class="mb-1"><strong>Medicines:</strong></p>
+                        <ul class="list-unstyled">
+                            {% set medicines = prescription.medicines.split(',') %}
+                            {% for medicine in medicines %}
+                            <li><i class="bi bi-capsule text-teal"></i> {{ medicine.strip() }}</li>
+                            {% endfor %}
+                        </ul>
+                        <span class="badge bg-{{ 'success' if prescription.issued_status == 'Dispensed' else 'warning' }}">
+                            {{ prescription.issued_status }}
+                        </span>
+                    </div>
+                </div>
+                {% else %}
+                <p class="text-center text-muted">No prescription history</p>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,88 @@
+{% extends "layouts/base.html" %}
+
+{% block title %}Issue Prescription{% endblock %}
+{% block page_title %}Issue Prescription{% endblock %}
+
+{% block sidebar_menu %}
+<li><a href="{{ url_for('doctor.dashboard') }}"><i class="bi bi-speedometer2"></i> Dashboard</a></li>
+<li><a href="{{ url_for('doctor.appointments') }}"><i class="bi bi-calendar-check"></i> Appointments</a></li>
+<li><a href="{{ url_for('doctor.prescriptions') }}" class="active"><i class="bi bi-file-medical"></i> Prescriptions</a></li>
+<li><a href="{{ url_for('doctor.notifications') }}"><i class="bi bi-bell"></i> Notifications</a></li>
+{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <h2>Issue Prescription</h2>
+        <p class="text-muted">Create prescription for patient</p>
+    </div>
+</div>
+
+<!-- Appointment Details -->
+<div class="card mb-4">
+    <div class="card-header bg-info text-white">
+        <h5 class="mb-0"><i class="bi bi-calendar-check"></i> Appointment Details</h5>
+    </div>
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-4">
+                <strong>Patient:</strong> {{ appointment.patient.username }}
+            </div>
+            <div class="col-md-4">
+                <strong>Date:</strong> {{ appointment.date.strftime('%Y-%m-%d') }}
+            </div>
+            <div class="col-md-4">
+                <strong>Time:</strong> {{ appointment.time.strftime('%H:%M') }}
+            </div>
+        </div>
+        {% if appointment.notes %}
+        <div class="row mt-2">
+            <div class="col-12">
+                <strong>Notes:</strong> {{ appointment.notes }}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Prescription Form -->
+<div class="card">
+    <div class="card-header">
+        <h5 class="mb-0"><i class="bi bi-file-medical"></i> Prescription Form</h5>
+    </div>
+    <div class="card-body">
+        <form method="POST" action="{{ url_for('doctor.issue_prescription', appointment_id=appointment.id) }}">
+            <div class="mb-3">
+                <label for="diagnosis" class="form-label">Diagnosis <span class="text-danger">*</span></label>
+                <textarea class="form-control" id="diagnosis" name="diagnosis" rows="4" required 
+                          placeholder="Enter patient diagnosis..."></textarea>
+            </div>
+            
+            <div class="mb-3">
+                <label for="medicines" class="form-label">Prescribed Medicines <span class="text-danger">*</span></label>
+                <textarea class="form-control" id="medicines" name="medicines" rows="6" required
+                          placeholder="Enter medicines (one per line):&#10;Paracetamol 500mg - Take 1 tablet 3 times daily after meals&#10;Amoxicillin 250mg - Take 1 capsule 2 times daily for 7 days"></textarea>
+                <small class="text-muted">Format: Medicine name - Dosage instructions (one per line)</small>
+            </div>
+            
+            <div class="text-end">
+                <a href="{{ url_for('doctor.dashboard') }}" class="btn btn-secondary">
+                    <i class="bi bi-x-circle"></i> Cancel
+                </a>
+                <button type="submit" class="btn btn-success">
+                    <i class="bi bi-file-medical"></i> Issue Prescription
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Patient History Link -->
+<div class="card mt-4">
+    <div class="card-body">
+        <a href="{{ url_for('doctor.patient_history', patient_id=appointment.patient_id) }}" class="btn btn-outline-primary">
+            <i class="bi bi-clock-history"></i> View Patient History
+        </a>
+    </div>
+</div>
+{% endblock %}

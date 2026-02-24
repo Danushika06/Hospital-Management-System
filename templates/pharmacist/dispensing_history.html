@@ -1,0 +1,71 @@
+{% extends "layouts/base.html" %}
+
+{% block title %}Dispensing History{% endblock %}
+{% block page_title %}Dispensing History{% endblock %}
+
+{% block sidebar_menu %}
+<li><a href="{{ url_for('pharmacist.dashboard') }}"><i class="bi bi-speedometer2"></i> Dashboard</a></li>
+<li><a href="{{ url_for('pharmacist.prescriptions') }}"><i class="bi bi-file-medical"></i> Prescriptions</a></li>
+<li><a href="{{ url_for('pharmacist.inventory') }}"><i class="bi bi-box-seam"></i> Inventory</a></li>
+<li><a href="{{ url_for('pharmacist.dispensing_history') }}" class="active"><i class="bi bi-clock-history"></i> History</a></li>
+<li><a href="{{ url_for('pharmacist.low_stock_alerts') }}"><i class="bi bi-exclamation-triangle"></i> Low Stock</a></li>
+<li><a href="{{ url_for('pharmacist.expiry_tracking') }}"><i class="bi bi-calendar-x"></i> Expiry Tracking</a></li>
+{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <h2>Dispensing History</h2>
+        <p class="text-muted">Complete record of all dispensed prescriptions</p>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>Prescription ID</th>
+                        <th>Patient</th>
+                        <th>Doctor</th>
+                        <th>Issue Date</th>
+                        <th>Diagnosis</th>
+                        <th>Medicines</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for prescription in history %}
+                    <tr>
+                        <td>#{{ prescription.id }}</td>
+                        <td>{{ prescription.patient.username }}</td>
+                        <td>Dr. {{ prescription.doctor.username }}</td>
+                        <td>{{ prescription.issue_date.strftime('%Y-%m-%d %H:%M') }}</td>
+                        <td>{{ prescription.diagnosis }}</td>
+                        <td>
+                            <small>
+                            {% set medicines = prescription.medicines.split(',')[:2] %}
+                            {% for medicine in medicines %}
+                                {{ medicine.strip() }}{% if not loop.last %},{% endif %}
+                            {% endfor %}
+                            {% if prescription.medicines.split(',')|length > 2 %}
+                                <span class="badge bg-purple">+{{ prescription.medicines.split(',')|length - 2 }} more</span>
+                            {% endif %}
+                            </small>
+                        </td>
+                        <td><span class="badge bg-success">{{ prescription.issued_status }}</span></td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="7" class="text-center text-muted py-4">
+                            No dispensing history available
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

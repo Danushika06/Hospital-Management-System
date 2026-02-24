@@ -1,0 +1,103 @@
+{% extends "layouts/base.html" %}
+
+{% block title %}Low Stock Alerts{% endblock %}
+{% block page_title %}Low Stock Alerts{% endblock %}
+
+{% block sidebar_menu %}
+<li><a href="{{ url_for('pharmacist.dashboard') }}"><i class="bi bi-speedometer2"></i> Dashboard</a></li>
+<li><a href="{{ url_for('pharmacist.prescriptions') }}"><i class="bi bi-file-medical"></i> Prescriptions</a></li>
+<li><a href="{{ url_for('pharmacist.inventory') }}"><i class="bi bi-box-seam"></i> Inventory</a></li>
+<li><a href="{{ url_for('pharmacist.dispensing_history') }}"><i class="bi bi-clock-history"></i> History</a></li>
+<li><a href="{{ url_for('pharmacist.low_stock_alerts') }}" class="active"><i class="bi bi-exclamation-triangle"></i> Low Stock</a></li>
+<li><a href="{{ url_for('pharmacist.expiry_tracking') }}"><i class="bi bi-calendar-x"></i> Expiry Tracking</a></li>
+{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <h2>Low Stock Alerts</h2>
+        <p class="text-muted">Medicines requiring restock (quantity below 50)</p>
+    </div>
+</div>
+
+<div class="alert alert-warning">
+    <i class="bi bi-exclamation-triangle"></i> 
+    <strong>{{ low_stock_medicines|length }}</strong> medicine(s) are running low on stock!
+</div>
+
+<div class="row">
+    {% for medicine in low_stock_medicines %}
+    <div class="col-md-6 mb-3">
+        <div class="card border-{{ 'danger' if medicine.quantity < 20 else 'warning' }}">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h5 class="card-title mb-1">{{ medicine.name }}</h5>
+                        <p class="text-muted mb-1">Expiry: {{ medicine.expiry_date.strftime('%Y-%m-%d') }}</p>
+                        <p class="mb-0">
+                            <strong>Current Stock:</strong> 
+                            <span class="badge bg-{{ 'danger' if medicine.quantity < 20 else 'warning' }}">
+                                {{ medicine.quantity }} units
+                            </span>
+                        </p>
+                    </div>
+                    <div>
+                        <button class="btn btn-purple btn-sm restock-btn" 
+                                data-medicine-id="{{ medicine.id }}" 
+                                data-medicine-name="{{ medicine.name }}">
+                            <i class="bi bi-plus-circle"></i> Restock
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <div class="col-12">
+        <div class="alert alert-success text-center">
+            <i class="bi bi-check-circle"></i> All medicines are adequately stocked!
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+<!-- Restock Modal -->
+<div class="modal fade" id="restockModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Restock - <span id="medicineName"></span></h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="POST" id="restockForm">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Add Quantity</label>
+                        <input type="number" name="quantity" class="form-control" 
+                               placeholder="Enter quantity to add" required min="1">
+                    </div>
+                    <div class="alert alert-info">
+                        <i class="bi bi-info-circle"></i> This will be added to existing stock
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-purple">Restock</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+document.querySelectorAll('.restock-btn').forEach(btn => {
+    btn.addEventListener('click', function() {
+        const medicineId = this.dataset.medicineId;
+        const medicineName = this.dataset.medicineName;
+        document.getElementById('medicineName').textContent = medicineName;
+        document.getElementById('restockForm').action = `/pharmacist/inventory/update/${medicineId}`;
+        new bootstrap.Modal(document.getElementById('restockModal')).show();
+    });
+});
+</script>
+{% endblock %}

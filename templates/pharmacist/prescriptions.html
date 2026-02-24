@@ -1,0 +1,113 @@
+{% extends "layouts/base.html" %}
+
+{% block title %}All Prescriptions{% endblock %}
+{% block page_title %}All Prescriptions{% endblock %}
+
+{% block sidebar_menu %}
+<li><a href="{{ url_for('pharmacist.dashboard') }}"><i class="bi bi-speedometer2"></i> Dashboard</a></li>
+<li><a href="{{ url_for('pharmacist.prescriptions') }}" class="active"><i class="bi bi-file-medical"></i> Prescriptions</a></li>
+<li><a href="{{ url_for('pharmacist.inventory') }}"><i class="bi bi-box-seam"></i> Inventory</a></li>
+<li><a href="{{ url_for('pharmacist.dispensing_history') }}"><i class="bi bi-clock-history"></i> History</a></li>
+<li><a href="{{ url_for('pharmacist.low_stock_alerts') }}"><i class="bi bi-exclamation-triangle"></i> Low Stock</a></li>
+<li><a href="{{ url_for('pharmacist.expiry_tracking') }}"><i class="bi bi-calendar-x"></i> Expiry Tracking</a></li>
+{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <h2>All Prescriptions</h2>
+        <p class="text-muted">View and dispense prescriptions</p>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        <ul class="nav nav-tabs mb-3">
+            <li class="nav-item">
+                <a class="nav-link active" data-bs-toggle="tab" href="#pending">Pending</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" data-bs-toggle="tab" href="#dispensed">Dispensed</a>
+            </li>
+        </ul>
+
+        <div class="tab-content">
+            <div class="tab-pane fade show active" id="pending">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Patient</th>
+                                <th>Doctor</th>
+                                <th>Issue Date</th>
+                                <th>Diagnosis</th>
+                                <th>Medicines</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for prescription in pending_prescriptions %}
+                            <tr>
+                                <td>#{{ prescription.id }}</td>
+                                <td>{{ prescription.patient.username }}</td>
+                                <td>Dr. {{ prescription.doctor.username }}</td>
+                                <td>{{ prescription.issue_date.strftime('%Y-%m-%d') }}</td>
+                                <td>{{ prescription.diagnosis }}</td>
+                                <td>
+                                    <small>{{ prescription.medicines[:50] }}{% if prescription.medicines|length > 50 %}...{% endif %}</small>
+                                </td>
+                                <td>
+                                    <form method="POST" action="{{ url_for('pharmacist.dispense_prescription', prescription_id=prescription.id) }}">
+                                        <button type="submit" class="btn btn-sm btn-purple">
+                                            <i class="bi bi-check-circle"></i> Dispense
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
+                            {% else %}
+                            <tr><td colspan="7" class="text-center text-muted">No pending prescriptions</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="tab-pane fade" id="dispensed">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Patient</th>
+                                <th>Doctor</th>
+                                <th>Issue Date</th>
+                                <th>Diagnosis</th>
+                                <th>Medicines</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for prescription in dispensed_prescriptions %}
+                            <tr>
+                                <td>#{{ prescription.id }}</td>
+                                <td>{{ prescription.patient.username }}</td>
+                                <td>Dr. {{ prescription.doctor.username }}</td>
+                                <td>{{ prescription.issue_date.strftime('%Y-%m-%d') }}</td>
+                                <td>{{ prescription.diagnosis }}</td>
+                                <td>
+                                    <small>{{ prescription.medicines[:50] }}{% if prescription.medicines|length > 50 %}...{% endif %}</small>
+                                </td>
+                                <td><span class="badge bg-success">Dispensed</span></td>
+                            </tr>
+                            {% else %}
+                            <tr><td colspan="7" class="text-center text-muted">No dispensed prescriptions</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,112 @@
+{% extends "layouts/base.html" %}
+
+{% block title %}Notifications - Receptionist{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <!-- Sidebar -->
+        <nav class="col-md-3 col-lg-2 d-md-block bg-light sidebar">
+            <div class="position-sticky pt-3">
+                <ul class="nav flex-column">
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('receptionist.dashboard') }}">
+                            <i class="bi bi-speedometer2"></i> Dashboard
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('receptionist.appointments') }}">
+                            <i class="bi bi-calendar-check"></i> Appointments
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('receptionist.queue') }}">
+                            <i class="bi bi-people"></i> Queue
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="{{ url_for('receptionist.notifications') }}">
+                            <i class="bi bi-bell"></i> Notifications
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </nav>
+
+        <!-- Main content -->
+        <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
+            <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                <h1 class="h2"><i class="bi bi-bell me-2"></i>Notifications</h1>
+                {% if notifications %}
+                <button class="btn btn-sm btn-outline-primary" onclick="markAllRead()">
+                    <i class="bi bi-check-all"></i> Mark All Read
+                </button>
+                {% endif %}
+            </div>
+
+            {% if notifications %}
+            <div class="list-group">
+                {% for notification in notifications %}
+                <div class="list-group-item list-group-item-action {% if not notification.is_read %}bg-light{% endif %}" id="notification-{{ notification.id }}">
+                    <div class="d-flex w-100 justify-content-between">
+                        <div class="d-flex align-items-start">
+                            {% if not notification.is_read %}
+                            <span class="badge bg-primary me-2">New</span>
+                            {% endif %}
+                            <div>
+                                <p class="mb-1">{{ notification.message }}</p>
+                                <small class="text-muted">
+                                    <i class="bi bi-clock"></i> {{ notification.created_at.strftime('%Y-%m-%d %H:%M') }}
+                                </small>
+                            </div>
+                        </div>
+                        {% if not notification.is_read %}
+                        <button class="btn btn-sm btn-outline-secondary" onclick="markRead({{ notification.id }})">
+                            <i class="bi bi-check"></i> Mark Read
+                        </button>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="alert alert-info">
+                <i class="bi bi-info-circle me-2"></i>No notifications yet.
+            </div>
+            {% endif %}
+        </main>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function markRead(notificationId) {
+    fetch(`/receptionist/notifications/mark_read/${notificationId}`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            const element = document.getElementById(`notification-${notificationId}`);
+            element.classList.remove('bg-light');
+            element.querySelector('.badge')?.remove();
+            element.querySelector('button')?.remove();
+        }
+    });
+}
+
+function markAllRead() {
+    document.querySelectorAll('.list-group-item').forEach(item => {
+        const btn = item.querySelector('button[onclick^="markRead"]');
+        if (btn) {
+            const id = btn.getAttribute('onclick').match(/\d+/)[0];
+            markRead(parseInt(id));
+        }
+    });
+}
+</script>
+{% endblock %}

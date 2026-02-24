@@ -1,0 +1,239 @@
+{% extends "layouts/base.html" %}
+
+{% block title %}Admin Dashboard{% endblock %}
+{% block page_title %}Admin Dashboard{% endblock %}
+
+{% block sidebar_menu %}
+<li><a href="{{ url_for('admin.dashboard') }}" class="active"><i class="bi bi-speedometer2"></i> Dashboard</a></li>
+<li><a href="{{ url_for('admin.users') }}"><i class="bi bi-people"></i> Users</a></li>
+<li><a href="{{ url_for('admin.appointments') }}"><i class="bi bi-calendar-check"></i> Appointments</a></li>
+<li><a href="{{ url_for('admin.prescriptions') }}"><i class="bi bi-file-medical"></i> Prescriptions</a></li>
+{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <h2>Welcome, {{ user.username }}!</h2>
+        <p class="text-muted">System Overview and Statistics</p>
+    </div>
+</div>
+
+<!-- Statistics Cards -->
+<div class="row g-4 mb-4">
+    <div class="col-md-4">
+        <div class="card stat-card stat-card-blue">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="text-muted mb-2">Total Patients</h6>
+                        <h2 class="mb-0">{{ total_patients }}</h2>
+                    </div>
+                    <div class="stat-icon">
+                        <i class="bi bi-people"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card stat-card stat-card-green">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="text-muted mb-2">Total Doctors</h6>
+                        <h2 class="mb-0">{{ total_doctors }}</h2>
+                    </div>
+                    <div class="stat-icon">
+                        <i class="bi bi-person-badge"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card stat-card stat-card-purple">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="text-muted mb-2">Total Pharmacists</h6>
+                        <h2 class="mb-0">{{ total_pharmacists }}</h2>
+                    </div>
+                    <div class="stat-icon">
+                        <i class="bi bi-capsule"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card stat-card stat-card-orange">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="text-muted mb-2">Appointments Today</h6>
+                        <h2 class="mb-0">{{ appointments_today }}</h2>
+                    </div>
+                    <div class="stat-icon">
+                        <i class="bi bi-calendar-day"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card stat-card stat-card-teal">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="text-muted mb-2">Total Prescriptions</h6>
+                        <h2 class="mb-0">{{ total_prescriptions }}</h2>
+                    </div>
+                    <div class="stat-icon">
+                        <i class="bi bi-file-medical"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card stat-card stat-card-yellow">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="text-muted mb-2">Pending Appointments</h6>
+                        <h2 class="mb-0">{{ pending_appointments }}</h2>
+                    </div>
+                    <div class="stat-icon">
+                        <i class="bi bi-clock-history"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Quick Actions -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0"><i class="bi bi-lightning"></i> Quick Actions</h5>
+            </div>
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-md-3">
+                        <a href="{{ url_for('admin.users') }}" class="btn btn-outline-primary w-100">
+                            <i class="bi bi-person-plus"></i> Add User
+                        </a>
+                    </div>
+                    <div class="col-md-3">
+                        <a href="{{ url_for('admin.appointments') }}" class="btn btn-outline-primary w-100">
+                            <i class="bi bi-calendar-check"></i> View Appointments
+                        </a>
+                    </div>
+                    <div class="col-md-3">
+                        <a href="{{ url_for('admin.prescriptions') }}" class="btn btn-outline-primary w-100">
+                            <i class="bi bi-file-medical"></i> View Prescriptions
+                        </a>
+                    </div>
+                    <div class="col-md-3">
+                        <form method="POST" action="{{ url_for('admin.backup_database') }}" class="d-inline">
+                            <button type="submit" class="btn btn-outline-success w-100" onclick="return confirm('Create database backup?')">
+                                <i class="bi bi-database"></i> Backup Database
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Recent Activity -->
+<div class="row">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-calendar-event"></i> Recent Appointments</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Patient</th>
+                                <th>Doctor</th>
+                                <th>Date</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for appointment in recent_appointments[:5] %}
+                            <tr>
+                                <td>{{ appointment.patient.username }}</td>
+                                <td>Dr. {{ appointment.doctor.username }}</td>
+                                <td>{{ appointment.date.strftime('%Y-%m-%d') }}</td>
+                                <td>
+                                    <span class="badge bg-{{ 'success' if appointment.status == 'Approved' else 'warning' if appointment.status == 'Pending' else 'secondary' }}">
+                                        {{ appointment.status }}
+                                    </span>
+                                </td>
+                            </tr>
+                            {% else %}
+                            <tr>
+                                <td colspan="4" class="text-center text-muted">No appointments yet</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-file-medical"></i> Recent Prescriptions</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Patient</th>
+                                <th>Doctor</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for prescription in recent_prescriptions[:5] %}
+                            <tr>
+                                <td>#{{ prescription.id }}</td>
+                                <td>{{ prescription.patient.username }}</td>
+                                <td>Dr. {{ prescription.doctor.username }}</td>
+                                <td>
+                                    <span class="badge bg-{{ 'success' if prescription.issued_status == 'Dispensed' else 'warning' }}">
+                                        {{ prescription.issued_status }}
+                                    </span>
+                                </td>
+                            </tr>
+                            {% else %}
+                            <tr>
+                                <td colspan="4" class="text-center text-muted">No prescriptions yet</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

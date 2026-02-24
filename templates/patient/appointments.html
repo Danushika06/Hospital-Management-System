@@ -1,0 +1,66 @@
+{% extends "layouts/base.html" %}
+
+{% block title %}My Appointments{% endblock %}
+{% block page_title %}My Appointments{% endblock %}
+
+{% block sidebar_menu %}
+<li><a href="{{ url_for('patient.dashboard') }}"><i class="bi bi-speedometer2"></i> Dashboard</a></li>
+<li><a href="{{ url_for('patient.book_appointment') }}"><i class="bi bi-calendar-plus"></i> Book Appointment</a></li>
+<li><a href="{{ url_for('patient.appointments') }}" class="active"><i class="bi bi-calendar-check"></i> My Appointments</a></li>
+<li><a href="{{ url_for('patient.prescriptions') }}"><i class="bi bi-file-medical"></i> My Prescriptions</a></li>
+<li><a href="{{ url_for('patient.analytics') }}"><i class="bi bi-graph-up"></i> Analytics</a></li>
+<li><a href="{{ url_for('patient.chatbot') }}"><i class="bi bi-robot"></i> AI Assistant</a></li>
+{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <h2>My Appointments</h2>
+        <p class="text-muted">View and manage your appointments</p>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Doctor</th>
+                        <th>Date</th>
+                        <th>Time</th>
+                        <th>Status</th>
+                        <th>Notes</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for appointment in appointments %}
+                    <tr>
+                        <td>#{{ appointment.id }}</td>
+                        <td>Dr. {{ appointment.doctor.username }}</td>
+                        <td>{{ appointment.date.strftime('%Y-%m-%d') }}</td>
+                        <td>{{ appointment.time.strftime('%H:%M') }}</td>
+                        <td>
+                            <span class="badge bg-{{ 'success' if appointment.status == 'Approved' else 'warning' if appointment.status == 'Pending' else 'danger' if appointment.status == 'Rejected' else 'secondary' }}">
+                                {{ appointment.status }}
+                            </span>
+                        </td>
+                        <td>{{ appointment.notes if appointment.notes else '-' }}</td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="6" class="text-center text-muted py-4">
+                            No appointments found<br>
+                            <a href="{{ url_for('patient.book_appointment') }}" class="btn btn-success btn-sm mt-2">
+                                <i class="bi bi-calendar-plus"></i> Book Your First Appointment
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

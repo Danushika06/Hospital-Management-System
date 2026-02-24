@@ -1,0 +1,63 @@
+{% extends "layouts/base.html" %}
+
+{% block title %}Prescriptions - Admin{% endblock %}
+{% block page_title %}All Prescriptions{% endblock %}
+
+{% block sidebar_menu %}
+<li><a href="{{ url_for('admin.dashboard') }}"><i class="bi bi-speedometer2"></i> Dashboard</a></li>
+<li><a href="{{ url_for('admin.users') }}"><i class="bi bi-people"></i> Users</a></li>
+<li><a href="{{ url_for('admin.appointments') }}"><i class="bi bi-calendar-check"></i> Appointments</a></li>
+<li><a href="{{ url_for('admin.prescriptions') }}" class="active"><i class="bi bi-file-medical"></i> Prescriptions</a></li>
+{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <h2>All Prescriptions</h2>
+        <p class="text-muted">View and manage all prescriptions</p>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Patient</th>
+                        <th>Doctor</th>
+                        <th>Diagnosis</th>
+                        <th>Status</th>
+                        <th>Date</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for prescription in prescriptions %}
+                    <tr>
+                        <td>#{{ prescription.id }}</td>
+                        <td><i class="bi bi-person"></i> {{ prescription.patient.username }}</td>
+                        <td><i class="bi bi-person-badge"></i> Dr. {{ prescription.doctor.username }}</td>
+                        <td>{{ prescription.diagnosis[:50] }}{% if prescription.diagnosis|length > 50 %}...{% endif %}</td>
+                        <td>
+                            {% if prescription.issued_status == 'Pending' %}
+                                <span class="badge bg-warning">Pending</span>
+                            {% elif prescription.issued_status == 'Dispensed' %}
+                                <span class="badge bg-success">Dispensed</span>
+                            {% else %}
+                                <span class="badge bg-secondary">{{ prescription.issued_status }}</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ prescription.created_at.strftime('%Y-%m-%d') }}</td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="6" class="text-center text-muted">No prescriptions found</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

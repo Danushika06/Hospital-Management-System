@@ -1,0 +1,256 @@
+{% extends "layouts/base.html" %}
+
+{% block title %}Pharmacist Dashboard{% endblock %}
+{% block page_title %}Pharmacist Dashboard{% endblock %}
+
+{% block sidebar_menu %}
+<li><a href="{{ url_for('pharmacist.dashboard') }}" class="active"><i class="bi bi-speedometer2"></i> Dashboard</a></li>
+<li><a href="{{ url_for('pharmacist.prescriptions') }}"><i class="bi bi-file-medical"></i> Prescriptions</a></li>
+<li><a href="{{ url_for('pharmacist.inventory') }}"><i class="bi bi-box-seam"></i> Inventory</a></li>
+<li><a href="{{ url_for('pharmacist.dispensing_history') }}"><i class="bi bi-clock-history"></i> History</a></li>
+<li><a href="{{ url_for('pharmacist.low_stock_alerts') }}"><i class="bi bi-exclamation-triangle"></i> Alerts</a></li>
+<li><a href="{{ url_for('pharmacist.expiry_tracking') }}"><i class="bi bi-calendar-x"></i> Expiry Tracking</a></li>
+{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <h2>Welcome, {{ user.username }}!</h2>
+        <p class="text-muted">Pharmacy & Inventory Management</p>
+    </div>
+</div>
+
+<!-- Statistics -->
+<div class="row g-4 mb-4">
+    <div class="col-md-3">
+        <div class="card stat-card stat-card-purple">
+            <div class="card-body">
+                <h6 class="text-muted">Pending Prescriptions</h6>
+                <h2>{{ total_pending }}</h2>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3">
+        <div class="card stat-card stat-card-green">
+            <div class="card-body">
+                <h6 class="text-muted">Dispensed</h6>
+                <h2>{{ total_dispensed }}</h2>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3">
+        <div class="card stat-card stat-card-blue">
+            <div class="card-body">
+                <h6 class="text-muted">Total Medicines</h6>
+                <h2>{{ total_medicines }}</h2>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3">
+        <div class="card stat-card stat-card-orange">
+            <div class="card-body">
+                <h6 class="text-muted">Low Stock Items</h6>
+                <h2>{{ low_stock_count }}</h2>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Alerts Row -->
+<div class="row mb-4">
+    {% if low_stock_medicines %}
+    <div class="col-md-6">
+        <div class="alert alert-warning">
+            <h6><i class="bi bi-exclamation-triangle"></i> Low Stock Alert</h6>
+            <p class="mb-0">{{ low_stock_medicines|length }} medicine(s) are running low on stock.</p>
+            <a href="{{ url_for('pharmacist.low_stock_alerts') }}" class="btn btn-sm btn-warning mt-2">View Details</a>
+        </div>
+    </div>
+    {% endif %}
+    
+    {% if expiring_soon %}
+    <div class="col-md-6">
+        <div class="alert alert-danger">
+            <h6><i class="bi bi-calendar-x"></i> Expiry Alert</h6>
+            <p class="mb-0">{{ expiring_soon|length }} medicine(s) expiring within 30 days.</p>
+            <a href="{{ url_for('pharmacist.expiry_tracking') }}" class="btn btn-sm btn-danger mt-2">View Details</a>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Pending Prescriptions -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header bg-purple text-white">
+                <h5 class="mb-0"><i class="bi bi-file-medical"></i> Pending Prescriptions</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Patient</th>
+                                <th>Doctor</th>
+                                <th>Diagnosis</th>
+                                <th>Date</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for prescription in pending_prescriptions %}
+                            <tr>
+                                <td>#{{ prescription.id }}</td>
+                                <td>{{ prescription.patient.username }}</td>
+                                <td>Dr. {{ prescription.doctor.username }}</td>
+                                <td>{{ prescription.diagnosis[:40] }}...</td>
+                                <td>{{ prescription.created_at.strftime('%Y-%m-%d') }}</td>
+                                <td>
+                                    <button class="btn btn-sm btn-info" data-bs-toggle="modal" data-bs-target="#viewModal{{ prescription.id }}">
+                                        <i class="bi bi-eye"></i> View
+                                    </button>
+                                    <form method="POST" action="{{ url_for('pharmacist.dispense_prescription', prescription_id=prescription.id) }}" class="d-inline">
+                                        <button type="submit" class="btn btn-sm btn-success">
+                                            <i class="bi bi-check-circle"></i> Dispense
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
+                            
+                            <!-- View Modal -->
+                            <div class="modal fade" id="viewModal{{ prescription.id }}" tabindex="-1">
+                                <div class="modal-dialog modal-lg">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <h5 class="modal-title">Prescription #{{ prescription.id }}</h5>
+                                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                        </div>
+                                        <div class="modal-body">
+                                            <div class="row mb-3">
+                                                <div class="col-md-6">
+                                                    <strong>Patient:</strong> {{ prescription.patient.username }}
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <strong>Doctor:</strong> Dr. {{ prescription.doctor.username }}
+                                                </div>
+                                            </div>
+                                            <div class="mb-3">
+                                                <strong>Diagnosis:</strong>
+                                                <p>{{ prescription.diagnosis }}</p>
+                                            </div>
+                                            <div class="mb-3">
+                                                <strong>Medicines:</strong>
+                                                <pre>{{ prescription.medicine_details }}</pre>
+                                            </div>
+                                            <div>
+                                                <strong>Date:</strong> {{ prescription.created_at.strftime('%Y-%m-%d %H:%M') }}
+                                            </div>
+                                        </div>
+                                        <div class="modal-footer">
+                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            {% else %}
+                            <tr>
+                                <td colspan="6" class="text-center text-muted">No pending prescriptions</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Quick Inventory Overview -->
+<div class="row">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-exclamation-triangle"></i> Low Stock Medicines</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-sm">
+                        <thead>
+                            <tr>
+                                <th>Medicine</th>
+                                <th>Quantity</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for medicine in low_stock_medicines[:5] %}
+                            <tr class="{{ 'table-danger' if medicine.quantity < 20 else 'table-warning' }}">
+                                <td>{{ medicine.name }}</td>
+                                <td><strong>{{ medicine.quantity }}</strong></td>
+                            </tr>
+                            {% else %}
+                            <tr>
+                                <td colspan="2" class="text-center text-muted">All medicines well stocked</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                <a href="{{ url_for('pharmacist.inventory') }}" class="btn btn-sm btn-outline-primary w-100 mt-2">
+                    View Full Inventory
+                </a>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-calendar-x"></i> Expiring Soon</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-sm">
+                        <thead>
+                            <tr>
+                                <th>Medicine</th>
+                                <th>Expiry Date</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for medicine in expiring_soon[:5] %}
+                            <tr class="table-danger">
+                                <td>{{ medicine.name }}</td>
+                                <td>{{ medicine.expiry_date.strftime('%Y-%m-%d') }}</td>
+                            </tr>
+                            {% else %}
+                            <tr>
+                                <td colspan="2" class="text-center text-muted">No medicines expiring soon</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                <a href="{{ url_for('pharmacist.expiry_tracking') }}" class="btn btn-sm btn-outline-danger w-100 mt-2">
+                    View Expiry Tracking
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.stat-card-purple {
+    border-left: 4px solid #9333ea;
+}
+.bg-purple {
+    background-color: #9333ea !important;
+}
+</style>
+{% endblock %}

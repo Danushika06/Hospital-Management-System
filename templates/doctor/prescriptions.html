@@ -1,0 +1,103 @@
+{% extends "layouts/base.html" %}
+
+{% block title %}My Prescriptions{% endblock %}
+{% block page_title %}My Prescriptions{% endblock %}
+
+{% block sidebar_menu %}
+<li><a href="{{ url_for('doctor.dashboard') }}"><i class="bi bi-speedometer2"></i> Dashboard</a></li>
+<li><a href="{{ url_for('doctor.appointments') }}"><i class="bi bi-calendar-check"></i> My Appointments</a></li>
+<li><a href="{{ url_for('doctor.prescriptions') }}" class="active"><i class="bi bi-file-medical"></i> Prescriptions</a></li>
+{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <h2>My Prescriptions</h2>
+        <p class="text-muted">View all prescriptions you've issued</p>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Patient</th>
+                        <th>Issue Date</th>
+                        <th>Diagnosis</th>
+                        <th>Medicines</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for prescription in prescriptions %}
+                    <tr>
+                        <td>#{{ prescription.id }}</td>
+                        <td>{{ prescription.patient.username }}</td>
+                        <td>{{ prescription.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
+                        <td>{{ prescription.diagnosis }}</td>
+                        <td>
+                            <small>
+                            {% set medicines = prescription.medicine_details.split(',')[:2] %}
+                            {% for medicine in medicines %}
+                                {{ medicine.strip() }}{% if not loop.last %},{% endif %}
+                            {% endfor %}
+                            {% if prescription.medicine_details.split(',')|length > 2 %}
+                                <span class="badge bg-info">+{{ prescription.medicine_details.split(',')|length - 2 }} more</span>
+                            {% endif %}
+                            </small>
+                        </td>
+                        <td>
+                            <span class="badge bg-{{ 'success' if prescription.issued_status == 'Dispensed' else 'warning' }}">
+                                {{ prescription.issued_status }}
+                            </span>
+                        </td>
+                        <td>
+                            <button class="btn btn-sm btn-info view-prescription-btn" 
+                                    data-prescription-id="{{ prescription.id }}">
+                                <i class="bi bi-eye"></i> View
+                            </button>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="7" class="text-center text-muted py-4">
+                            No prescriptions issued yet
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Prescription Details Modal -->
+<div class="modal fade" id="prescriptionModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Prescription Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="prescriptionDetails">
+                <!-- Details loaded via AJAX -->
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.querySelectorAll('.view-prescription-btn').forEach(btn => {
+    btn.addEventListener('click', function() {
+        const prescriptionId = this.dataset.prescriptionId;
+        // Placeholder for viewing prescription details
+        $('#prescriptionDetails').html('<p>Loading prescription details...</p>');
+        $('#prescriptionModal').modal('show');
+    });
+});
+</script>
+{% endblock %}

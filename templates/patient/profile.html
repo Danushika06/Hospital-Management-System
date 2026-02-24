@@ -1,0 +1,72 @@
+{% extends "layouts/base.html" %}
+
+{% block title %}My Profile{% endblock %}
+{% block page_title %}My Profile{% endblock %}
+
+{% block sidebar_menu %}
+<li><a href="{{ url_for('patient.dashboard') }}"><i class="bi bi-speedometer2"></i> Dashboard</a></li>
+<li><a href="{{ url_for('patient.book_appointment') }}"><i class="bi bi-calendar-plus"></i> Book Appointment</a></li>
+<li><a href="{{ url_for('patient.appointments') }}"><i class="bi bi-calendar-check"></i> My Appointments</a></li>
+<li><a href="{{ url_for('patient.prescriptions') }}"><i class="bi bi-file-medical"></i> My Prescriptions</a></li>
+<li><a href="{{ url_for('patient.analytics') }}"><i class="bi bi-graph-up"></i> Analytics</a></li>
+<li><a href="{{ url_for('patient.chatbot') }}"><i class="bi bi-robot"></i> AI Assistant</a></li>
+{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <h2>My Profile</h2>
+        <p class="text-muted">View and manage your profile information</p>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-8 mx-auto">
+        <div class="card">
+            <div class="card-body">
+                <div class="text-center mb-4">
+                    <div class="rounded-circle bg-success d-inline-flex align-items-center justify-content-center" 
+                         style="width: 100px; height: 100px;">
+                        <i class="bi bi-person-fill text-white" style="font-size: 3rem;"></i>
+                    </div>
+                    <h4 class="mt-3">{{ user.username }}</h4>
+                    <span class="badge bg-success">Patient</span>
+                </div>
+                
+                <hr>
+                
+                <form method="POST" action="{{ url_for('patient.profile') }}">
+                    <div class="mb-3">
+                        <label class="form-label">Username</label>
+                        <input type="text" class="form-control" value="{{ user.username }}" disabled>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Email</label>
+                        <input type="email" name="email" class="form-control" 
+                               value="{{ user.email if user.email else '' }}" placeholder="Enter email">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Phone</label>
+                        <input type="tel" name="phone" class="form-control" 
+                               value="{{ user.phone if user.phone else '' }}" placeholder="Enter phone number">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Member Since</label>
+                        <input type="text" class="form-control" 
+                               value="{{ user.created_at.strftime('%Y-%m-%d') if user.created_at else 'N/A' }}" disabled>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Status</label>
+                        <input type="text" class="form-control" 
+                               value="{{ 'Active' if user.is_active else 'Inactive' }}" disabled>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-success">
+                        <i class="bi bi-save"></i> Update Profile
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

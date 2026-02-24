@@ -1,0 +1,138 @@
+{% extends "layouts/base.html" %}
+
+{% block title %}My Appointments{% endblock %}
+{% block page_title %}My Appointments{% endblock %}
+
+{% block sidebar_menu %}
+<li><a href="{{ url_for('doctor.dashboard') }}"><i class="bi bi-speedometer2"></i> Dashboard</a></li>
+<li><a href="{{ url_for('doctor.appointments') }}" class="active"><i class="bi bi-calendar-check"></i> My Appointments</a></li>
+<li><a href="{{ url_for('doctor.prescriptions') }}"><i class="bi bi-file-medical"></i> Prescriptions</a></li>
+<li><a href="{{ url_for('doctor.patient_history', patient_id=0) }}" style="display:none;"><i class="bi bi-clock-history"></i> Patient History</a></li>
+{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <h2>My Appointments</h2>
+        <p class="text-muted">View and manage your appointments</p>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        <ul class="nav nav-tabs mb-3" role="tablist">
+            <li class="nav-item">
+                <a class="nav-link active" data-bs-toggle="tab" href="#today">Today</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" data-bs-toggle="tab" href="#upcoming">Upcoming</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" data-bs-toggle="tab" href="#completed">Completed</a>
+            </li>
+        </ul>
+
+        <div class="tab-content">
+            <div class="tab-pane fade show active" id="today">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Patient</th>
+                                <th>Time</th>
+                                <th>Status</th>
+                                <th>Notes</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for appointment in today_appointments %}
+                            <tr>
+                                <td>#{{ appointment.id }}</td>
+                                <td>{{ appointment.patient.username }}</td>
+                                <td>{{ appointment.time.strftime('%H:%M') }}</td>
+                                <td><span class="badge bg-success">{{ appointment.status }}</span></td>
+                                <td>{{ appointment.notes if appointment.notes else '-' }}</td>
+                                <td>
+                                    <a href="{{ url_for('doctor.patient_history', patient_id=appointment.patient_id) }}" 
+                                       class="btn btn-sm btn-info">
+                                        <i class="bi bi-clock-history"></i> History
+                                    </a>
+                                    {% if appointment.status == 'Approved' %}
+                                    <a href="{{ url_for('doctor.issue_prescription', appointment_id=appointment.id) }}" 
+                                       class="btn btn-sm btn-success">
+                                        <i class="bi bi-file-medical"></i> Prescribe
+                                    </a>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% else %}
+                            <tr><td colspan="6" class="text-center text-muted">No appointments today</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="tab-pane fade" id="upcoming">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Patient</th>
+                                <th>Date</th>
+                                <th>Time</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for appointment in upcoming_appointments %}
+                            <tr>
+                                <td>#{{ appointment.id }}</td>
+                                <td>{{ appointment.patient.username }}</td>
+                                <td>{{ appointment.date.strftime('%Y-%m-%d') }}</td>
+                                <td>{{ appointment.time.strftime('%H:%M') }}</td>
+                                <td><span class="badge bg-warning">{{ appointment.status }}</span></td>
+                            </tr>
+                            {% else %}
+                            <tr><td colspan="5" class="text-center text-muted">No upcoming appointments</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="tab-pane fade" id="completed">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Patient</th>
+                                <th>Date</th>
+                                <th>Time</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for appointment in completed_appointments %}
+                            <tr>
+                                <td>#{{ appointment.id }}</td>
+                                <td>{{ appointment.patient.username }}</td>
+                                <td>{{ appointment.date.strftime('%Y-%m-%d') }}</td>
+                                <td>{{ appointment.time.strftime('%H:%M') }}</td>
+                                <td><span class="badge bg-secondary">{{ appointment.status }}</span></td>
+                            </tr>
+                            {% else %}
+                            <tr><td colspan="5" class="text-center text-muted">No completed appointments</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

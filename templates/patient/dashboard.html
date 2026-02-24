@@ -1,0 +1,163 @@
+{% extends "layouts/base.html" %}
+
+{% block title %}Patient Dashboard{% endblock %}
+{% block page_title %}Patient Dashboard{% endblock %}
+
+{% block sidebar_menu %}
+<li><a href="{{ url_for('patient.dashboard') }}" class="active"><i class="bi bi-speedometer2"></i> Dashboard</a></li>
+<li><a href="{{ url_for('patient.book_appointment') }}"><i class="bi bi-calendar-plus"></i> Book Appointment</a></li>
+<li><a href="{{ url_for('patient.appointments') }}"><i class="bi bi-calendar-check"></i> My Appointments</a></li>
+<li><a href="{{ url_for('patient.prescriptions') }}"><i class="bi bi-file-medical"></i> My Prescriptions</a></li>
+<li><a href="{{ url_for('patient.analytics') }}"><i class="bi bi-graph-up"></i> Analytics</a></li>
+<li><a href="{{ url_for('patient.chatbot') }}"><i class="bi bi-robot"></i> AI Assistant</a></li>
+{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <h2>Welcome, {{ user.username }}!</h2>
+        <p class="text-muted">Your Health Dashboard</p>
+    </div>
+</div>
+
+<!-- Statistics -->
+<div class="row g-4 mb-4">
+    <div class="col-md-3">
+        <div class="card stat-card stat-card-green">
+            <div class="card-body">
+                <h6 class="text-muted">Total Appointments</h6>
+                <h2>{{ total_appointments }}</h2>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3">
+        <div class="card stat card-blue">
+            <div class="card-body">
+                <h6 class="text-muted">Total Prescriptions</h6>
+                <h2>{{ total_prescriptions }}</h2>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3">
+        <div class="card stat-card stat-card-yellow">
+            <div class="card-body">
+                <h6 class="text-muted">Pending Appointments</h6>
+                <h2>{{ pending_appointments }}</h2>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3">
+        <div class="card stat-card stat-card-orange">
+            <div class="card-body">
+                <h6 class="text-muted">Upcoming</h6>
+                <h2>{{ upcoming_appointments|length }}</h2>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Quick Actions -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header bg-success text-white">
+                <h5 class="mb-0"><i class="bi bi-lightning"></i> Quick Actions</h5>
+            </div>
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-md-3">
+                        <a href="{{ url_for('patient.book_appointment') }}" class="btn btn-outline-success w-100">
+                            <i class="bi bi-calendar-plus"></i> Book Appointment
+                        </a>
+                    </div>
+                    <div class="col-md-3">
+                        <a href="{{ url_for('patient.prescriptions') }}" class="btn btn-outline-success w-100">
+                            <i class="bi bi-file-medical"></i> View Prescriptions
+                        </a>
+                    </div>
+                    <div class="col-md-3">
+                        <a href="{{ url_for('patient.analytics') }}" class="btn btn-outline-success w-100">
+                            <i class="bi bi-graph-up"></i> Health Analytics
+                        </a>
+                    </div>
+                    <div class="col-md-3">
+                        <a href="{{ url_for('patient.chatbot') }}" class="btn btn-outline-success w-100">
+                            <i class="bi bi-robot"></i> AI Assistant
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Upcoming Appointments -->
+<div class="row">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-calendar-event"></i> Upcoming Appointments</h5>
+            </div>
+            <div class="card-body">
+                {% for appointment in upcoming_appointments %}
+                <div class="card mb-3 border-start border-success border-4">
+                    <div class="card-body">
+                        <div class="row align-items-center">
+                            <div class="col-md-6">
+                                <h6 class="mb-1">Dr. {{ appointment.doctor.username }}</h6>
+                                <p class="text-muted mb-0">
+                                    <i class="bi bi-calendar"></i> {{ appointment.date.strftime('%Y-%m-%d') }}
+                                    <i class="bi bi-clock ms-2"></i> {{ appointment.time.strftime('%H:%M') }}
+                                </p>
+                            </div>
+                            <div class="col-md-6 text-end">
+                                <span class="badge bg-{{ 'success' if appointment.status == 'Approved' else 'warning' if appointment.status == 'Pending' else 'secondary' }}">
+                                    {{ appointment.status }}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% else %}
+                <p class="text-muted text-center py-4">No upcoming appointments</p>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-file-medical"></i> Recent Prescriptions</h5>
+            </div>
+            <div class="card-body">
+                {% for prescription in recent_prescriptions %}
+                <div class="card mb-2 border-start border-primary border-3">
+                    <div class="card-body p-2">
+                        <small class="text-muted">{{ prescription.created_at.strftime('%Y-%m-%d') }}</small>
+                        <p class="mb-1"><strong>Dr. {{ prescription.doctor.username }}</strong></p>
+                        <p class="mb-0 text-muted"><small>{{ prescription.diagnosis[:50] }}...</small></p>
+                        <a href="{{ url_for('patient.download_prescription', prescription_id=prescription.id) }}" class="btn btn-sm btn-primary mt-2">
+                            <i class="bi bi-download"></i> Download
+                        </a>
+                    </div>
+                </div>
+                {% else %}
+                <p class="text-muted text-center">No prescriptions yet</p>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.stat-card-green {
+    border-left: 4px solid #16a34a;
+}
+</style>
+{% endblock %}

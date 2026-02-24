@@ -1,0 +1,109 @@
+{% extends "layouts/base.html" %}
+
+{% block title %}Health Analytics{% endblock %}
+{% block page_title %}Health Analytics{% endblock %}
+
+{% block sidebar_menu %}
+<li><a href="{{ url_for('patient.dashboard') }}"><i class="bi bi-speedometer2"></i> Dashboard</a></li>
+<li><a href="{{ url_for('patient.book_appointment') }}"><i class="bi bi-calendar-plus"></i> Book Appointment</a></li>
+<li><a href="{{ url_for('patient.appointments') }}"><i class="bi bi-calendar-check"></i> My Appointments</a></li>
+<li><a href="{{ url_for('patient.prescriptions') }}"><i class="bi bi-file-medical"></i> My Prescriptions</a></li>
+<li><a href="{{ url_for('patient.analytics') }}" class="active"><i class="bi bi-graph-up"></i> Analytics</a></li>
+<li><a href="{{ url_for('patient.chatbot') }}"><i class="bi bi-robot"></i> AI Assistant</a></li>
+{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <h2>Health Analytics</h2>
+        <p class="text-muted">Your health trends and statistics</p>
+    </div>
+</div>
+
+<div class="row mb-4">
+    <div class="col-md-4">
+        <div class="stat-card">
+            <div class="stat-icon" style="background: rgba(22, 163, 74, 0.1);">
+                <i class="bi bi-calendar-check" style="color: #16a34a;"></i>
+            </div>
+            <div class="stat-details">
+                <h3>{{ total_appointments }}</h3>
+                <p>Total Appointments</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="stat-card">
+            <div class="stat-icon" style="background: rgba(22, 163, 74, 0.1);">
+                <i class="bi bi-file-medical" style="color: #16a34a;"></i>
+            </div>
+            <div class="stat-details">
+                <h3>{{ total_prescriptions }}</h3>
+                <p>Total Prescriptions</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="stat-card">
+            <div class="stat-icon" style="background: rgba(22, 163, 74, 0.1);">
+                <i class="bi bi-capsule" style="color: #16a34a;"></i>
+            </div>
+            <div class="stat-details">
+                <h3>{{ unique_medicines }}</h3>
+                <p>Medicines Used</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-6 mb-4">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">Appointment Trends</h5>
+                <canvas id="appointmentChart"></canvas>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6 mb-4">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">Most Prescribed Medicines</h5>
+                <ul class="list-group">
+                    {% for medicine, count in frequent_medicines[:5] %}
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        {{ medicine }}
+                        <span class="badge bg-success rounded-pill">{{ count }}</span>
+                    </li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+const appointmentData = {{ appointments_by_month|tojson }};
+const ctx = document.getElementById('appointmentChart').getContext('2d');
+new Chart(ctx, {
+    type: 'line',
+    data: {
+        labels: appointmentData.map(d => d.month),
+        datasets: [{
+            label: 'Appointments per Month',
+            data: appointmentData.map(d => d.count),
+            borderColor: '#16a34a',
+            backgroundColor: 'rgba(22, 163, 74, 0.1)',
+            tension: 0.4
+        }]
+    },
+    options: {
+        responsive: true,
+        plugins: {
+            legend: { display: true }
+        }
+    }
+});
+</script>
+{% endblock %}
