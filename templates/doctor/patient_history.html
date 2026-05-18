@@ -85,11 +85,11 @@
                 {% for prescription in prescriptions %}
                 <div class="card mb-3">
                     <div class="card-body">
-                        <h6 class="card-title">{{ prescription.issue_date.strftime('%Y-%m-%d') }}</h6>
+                        <h6 class="card-title">{{ prescription.created_at.strftime('%Y-%m-%d') }}</h6>
                         <p class="mb-1"><strong>Diagnosis:</strong> {{ prescription.diagnosis }}</p>
                         <p class="mb-1"><strong>Medicines:</strong></p>
                         <ul class="list-unstyled">
-                            {% set medicines = prescription.medicines.split(',') %}
+                            {% set medicines = prescription.medicine_details.split(',') %}
                             {% for medicine in medicines %}
                             <li><i class="bi bi-capsule text-teal"></i> {{ medicine.strip() }}</li>
                             {% endfor %}

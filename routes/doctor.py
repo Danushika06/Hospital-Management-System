@@ -52,14 +52,35 @@ def dashboard():
 @doctor_bp.route('/appointments')
 @role_required('doctor')
 def appointments():
-    """View all approved appointments"""
+    """View doctor's appointments grouped into Today / Upcoming / Completed"""
     current_user = get_current_user()
-    all_appointments = Appointment.query.filter_by(
+    today = date.today()
+
+    # Today's approved appointments
+    today_appointments = Appointment.query.filter_by(
         doctor_id=current_user.id,
-        status='Approved'
+        status='Approved',
+        date=today
+    ).order_by(Appointment.time).all()
+
+    # Future approved appointments
+    upcoming_appointments = Appointment.query.filter(
+        Appointment.doctor_id == current_user.id,
+        Appointment.status == 'Approved',
+        Appointment.date > today
+    ).order_by(Appointment.date, Appointment.time).all()
+
+    # Completed appointments
+    completed_appointments = Appointment.query.filter_by(
+        doctor_id=current_user.id,
+        status='Completed'
     ).order_by(Appointment.date.desc(), Appointment.time.desc()).all()
-    
-    return render_template('doctor/appointments.html', user=current_user, appointments=all_appointments)
+
+    return render_template('doctor/appointments.html',
+                           user=current_user,
+                           today_appointments=today_appointments,
+                           upcoming_appointments=upcoming_appointments,
+                           completed_appointments=completed_appointments)
 
 
 @doctor_bp.route('/patient_history/<int:patient_id>')
@@ -167,6 +188,20 @@ def prescriptions():
     ).order_by(Prescription.created_at.desc()).all()
     
     return render_template('doctor/prescriptions.html', user=current_user, prescriptions=all_prescriptions)
+
+
+@doctor_bp.route('/prescription/<int:prescription_id>')
+@role_required('doctor')
+def prescription_details(prescription_id):
+    """Return prescription details as JSON for the View modal"""
+    current_user = get_current_user()
+    prescription = Prescription.query.get_or_404(prescription_id)
+
+    # Verify this prescription belongs to the current doctor
+    if prescription.doctor_id != current_user.id:
+        return jsonify({'error': 'Access denied.'}), 403
+
+    return jsonify(prescription.to_dict())
 
 
 @doctor_bp.route('/notifications')

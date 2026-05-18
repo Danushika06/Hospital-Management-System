@@ -109,7 +109,7 @@
 document.querySelectorAll('.reschedule-btn').forEach(btn => {
     btn.addEventListener('click', function() {
         const appointmentId = this.dataset.appointmentId;
-        document.getElementById('rescheduleForm').action = `/receptionist/reschedule/${appointmentId}`;
+        document.getElementById('rescheduleForm').action = `/receptionist/reschedule_appointment/${appointmentId}`;
         new bootstrap.Modal(document.getElementById('rescheduleModal')).show();
     });
 });

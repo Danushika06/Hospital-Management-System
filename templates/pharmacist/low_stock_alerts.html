@@ -95,7 +95,7 @@ document.querySelectorAll('.restock-btn').forEach(btn => {
         const medicineId = this.dataset.medicineId;
         const medicineName = this.dataset.medicineName;
         document.getElementById('medicineName').textContent = medicineName;
-        document.getElementById('restockForm').action = `/pharmacist/inventory/update/${medicineId}`;
+        document.getElementById('restockForm').action = `/pharmacist/restock_medicine/${medicineId}`;
         new bootstrap.Modal(document.getElementById('restockModal')).show();
     });
 });

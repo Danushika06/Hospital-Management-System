@@ -56,7 +56,7 @@
 document.querySelectorAll('.mark-read-btn').forEach(btn => {
     btn.addEventListener('click', function() {
         const notificationId = this.dataset.notificationId;
-        fetch(`/patient/notifications/read/${notificationId}`, { method: 'POST' })
+        fetch(`/patient/mark_notification_read/${notificationId}`, { method: 'POST' })
             .then(() => location.reload());
     });
 });

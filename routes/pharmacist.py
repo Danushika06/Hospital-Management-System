@@ -46,15 +46,21 @@ def dashboard():
 @pharmacist_bp.route('/prescriptions')
 @role_required('pharmacist')
 def prescriptions():
-    """View all prescriptions"""
+    """View all prescriptions, split into Pending and Dispensed"""
     current_user = get_current_user()
-    all_prescriptions = Prescription.query.order_by(
-        Prescription.created_at.desc()
-    ).all()
-    
-    return render_template('pharmacist/prescriptions.html', 
-                         user=current_user, 
-                         prescriptions=all_prescriptions)
+
+    pending_prescriptions = Prescription.query.filter_by(
+        issued_status='Pending'
+    ).order_by(Prescription.created_at.desc()).all()
+
+    dispensed_prescriptions = Prescription.query.filter_by(
+        issued_status='Dispensed'
+    ).order_by(Prescription.created_at.desc()).all()
+
+    return render_template('pharmacist/prescriptions.html',
+                         user=current_user,
+                         pending_prescriptions=pending_prescriptions,
+                         dispensed_prescriptions=dispensed_prescriptions)
 
 
 @pharmacist_bp.route('/dispense_prescription/<int:prescription_id>', methods=['POST'])
@@ -177,6 +183,37 @@ def update_stock(medicine_id):
         db.session.rollback()
         flash(f'Error updating stock: {str(e)}', 'danger')
         return redirect(url_for('pharmacist.inventory'))
+
+
+@pharmacist_bp.route('/restock_medicine/<int:medicine_id>', methods=['POST'])
+@role_required('pharmacist')
+def restock_medicine(medicine_id):
+    """Add quantity to an existing medicine's stock"""
+    try:
+        medicine = Medicine.query.get_or_404(medicine_id)
+
+        add_quantity = request.form.get('quantity', '').strip()
+
+        if not add_quantity:
+            flash('Quantity is required.', 'danger')
+            return redirect(url_for('pharmacist.low_stock_alerts'))
+
+        add_quantity = int(add_quantity)
+
+        if add_quantity < 1:
+            flash('Restock quantity must be at least 1.', 'danger')
+            return redirect(url_for('pharmacist.low_stock_alerts'))
+
+        medicine.quantity += add_quantity
+        db.session.commit()
+
+        flash(f'Restocked {medicine.name} (+{add_quantity}). New stock: {medicine.quantity} units.', 'success')
+        return redirect(url_for('pharmacist.low_stock_alerts'))
+
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Error restocking medicine: {str(e)}', 'danger')
+        return redirect(url_for('pharmacist.low_stock_alerts'))
 
 
 @pharmacist_bp.route('/delete_medicine/<int:medicine_id>', methods=['POST'])

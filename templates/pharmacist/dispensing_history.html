@@ -36,21 +36,21 @@
                     </tr>
                 </thead>
                 <tbody>
-                    {% for prescription in history %}
+                    {% for prescription in prescriptions %}
                     <tr>
                         <td>#{{ prescription.id }}</td>
                         <td>{{ prescription.patient.username }}</td>
                         <td>Dr. {{ prescription.doctor.username }}</td>
-                        <td>{{ prescription.issue_date.strftime('%Y-%m-%d %H:%M') }}</td>
+                        <td>{{ prescription.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
                         <td>{{ prescription.diagnosis }}</td>
                         <td>
                             <small>
-                            {% set medicines = prescription.medicines.split(',')[:2] %}
+                            {% set medicines = prescription.medicine_details.split(',')[:2] %}
                             {% for medicine in medicines %}
                                 {{ medicine.strip() }}{% if not loop.last %},{% endif %}
                             {% endfor %}
-                            {% if prescription.medicines.split(',')|length > 2 %}
-                                <span class="badge bg-purple">+{{ prescription.medicines.split(',')|length - 2 }} more</span>
+                            {% if prescription.medicine_details.split(',')|length > 2 %}
+                                <span class="badge bg-purple">+{{ prescription.medicine_details.split(',')|length - 2 }} more</span>
                             {% endif %}
                             </small>
                         </td>

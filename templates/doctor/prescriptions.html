@@ -91,12 +91,66 @@
 </div>
 
 <script>
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text == null ? '' : String(text);
+    return div.innerHTML;
+}
+
 document.querySelectorAll('.view-prescription-btn').forEach(btn => {
     btn.addEventListener('click', function() {
         const prescriptionId = this.dataset.prescriptionId;
-        // Placeholder for viewing prescription details
         $('#prescriptionDetails').html('<p>Loading prescription details...</p>');
         $('#prescriptionModal').modal('show');
+
+        fetch('{{ url_for("doctor.prescription_details", prescription_id=0) }}'.replace('/0', '/' + prescriptionId))
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Unable to load prescription details.');
+                }
+                return response.json();
+            })
+            .then(data => {
+                const statusClass = data.issued_status === 'Dispensed' ? 'success' : 'warning';
+                $('#prescriptionDetails').html(`
+                    <div class="row mb-2">
+                        <div class="col-sm-4 fw-bold">Prescription ID</div>
+                        <div class="col-sm-8">#${escapeHtml(data.id)}</div>
+                    </div>
+                    <div class="row mb-2">
+                        <div class="col-sm-4 fw-bold">Patient</div>
+                        <div class="col-sm-8">${escapeHtml(data.patient_name)}</div>
+                    </div>
+                    <div class="row mb-2">
+                        <div class="col-sm-4 fw-bold">Doctor</div>
+                        <div class="col-sm-8">${escapeHtml(data.doctor_name)}</div>
+                    </div>
+                    <div class="row mb-2">
+                        <div class="col-sm-4 fw-bold">Issue Date</div>
+                        <div class="col-sm-8">${escapeHtml(data.created_at)}</div>
+                    </div>
+                    <div class="row mb-2">
+                        <div class="col-sm-4 fw-bold">Status</div>
+                        <div class="col-sm-8">
+                            <span class="badge bg-${statusClass}">${escapeHtml(data.issued_status)}</span>
+                        </div>
+                    </div>
+                    <hr>
+                    <div class="mb-2">
+                        <div class="fw-bold">Diagnosis</div>
+                        <div>${escapeHtml(data.diagnosis)}</div>
+                    </div>
+                    <div class="mb-2">
+                        <div class="fw-bold">Medicines</div>
+                        <div style="white-space: pre-wrap;">${escapeHtml(data.medicine_details)}</div>
+                    </div>
+                `);
+            })
+            .catch(error => {
+                $('#prescriptionDetails').html(
+                    `<p class="text-danger">${escapeHtml(error.message)}</p>`
+                );
+            });
     });
 });
 </script>

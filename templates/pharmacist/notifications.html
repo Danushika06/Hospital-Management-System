@@ -94,8 +94,19 @@
 </div>
 {% endblock %}
 
-{% block scripts %}
+{% block extra_js %}
 <script>
+function updateNavbarBadge() {
+    const badge = document.querySelector('#notificationDropdown .badge');
+    if (!badge) return;
+    const count = parseInt(badge.textContent.trim(), 10) - 1;
+    if (count > 0) {
+        badge.textContent = count;
+    } else {
+        badge.remove();
+    }
+}
+
 function markRead(notificationId) {
     fetch(`/pharmacist/notifications/mark_read/${notificationId}`, {
         method: 'POST',
@@ -110,6 +121,7 @@ function markRead(notificationId) {
             element.classList.remove('bg-light');
             element.querySelector('.badge')?.remove();
             element.querySelector('button')?.remove();
+            updateNavbarBadge();
         }
     });
 }

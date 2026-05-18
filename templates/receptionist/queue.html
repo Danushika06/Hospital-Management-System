@@ -48,7 +48,9 @@
                                 </td>
                                 <td>
                                     {% if appointment.status == 'Approved' %}
-                                    <form method="POST" action="{{ url_for('receptionist.notify_doctor', appointment_id=appointment.id) }}" style="display:inline;">
+                                    <form method="POST" action="{{ url_for('receptionist.notify_doctor', doctor_id=appointment.doctor_id) }}" style="display:inline;">
+                                        <input type="hidden" name="message"
+                                               value="Patient {{ appointment.patient.username }} is in the queue for the {{ appointment.time.strftime('%H:%M') }} appointment today.">
                                         <button type="submit" class="btn btn-sm btn-orange">
                                             <i class="bi bi-bell"></i> Notify Doctor
                                         </button>
